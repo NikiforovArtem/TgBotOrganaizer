@@ -6,6 +6,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 using TgBotOrganaizer.Core.Entities;
+using TgBotOrganaizer.Core.Interfaces;
 
 namespace TgBotOrganaizer.Application
 {
@@ -25,7 +26,6 @@ namespace TgBotOrganaizer.Application
             this.articleRepository = articleRepository;
         }
 
-        // TODO: вынести команды в справочник с константами
         public async Task HandleTelegramMessageAsync(Message incomingMessage)
         {
             // TODO: Validate by message type. not caption or text
@@ -63,7 +63,7 @@ namespace TgBotOrganaizer.Application
 
             var match = regex.Match(messageText);
 
-            if (!match.Success)
+            if (!match.Success || string.IsNullOrWhiteSpace(match.Groups["command"].Value))
             {
                 await this.botClient.SendTextMessageAsync(
                     chatId: chatId,
@@ -106,6 +106,14 @@ namespace TgBotOrganaizer.Application
         {
             var theme = incomingMessageMatch.Groups["theme"];
             var article = await this.articleRepository.GetArticleByThemeAsync(theme.Value);
+
+            if (article == null)
+            {
+                await botClient.SendTextMessageAsync(
+                    chatId: chatId,
+                    text: $"Заметка с темой={theme.Value} отсутствует");
+                return;
+            }
             
             //TODO: вынести в слой инфраструктуры взаимодействие с API Telegram
             if (article.PhotoItems != null && article.PhotoItems.Any())
@@ -158,10 +166,13 @@ namespace TgBotOrganaizer.Application
 
             // TODO: handle mediaGroupId. If message have 2 files then telegram send 2 different api requests with one mediaGroupId.
             var newArticleDto = new Article(theme.Value, text.Value, Guid.NewGuid().ToString());
-            newArticleDto.AddPhotoItem("", fileId);
-            await this.articleRepository.InsertAsync(newArticleDto);
 
-            //TODO: засылать картинки просто по одному запросу,обновляя просто статью, а в caption указывать тему, к которой относится картинка
+            if (fileId != null)
+            {
+                newArticleDto.AddPhotoItem(photoCaption, fileId);
+            }
+
+            await this.articleRepository.InsertAsync(newArticleDto);
 
             await botClient.SendTextMessageAsync(
                 chatId: chatId,

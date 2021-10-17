@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
+using Telegram.Bot;
 using TgBotOrganaizer.Core.Entities.SeedWork;
 
 namespace TgBotOrganaizer.Application.ApplicationInfrastructure.Filters
@@ -34,6 +35,7 @@ namespace TgBotOrganaizer.Application.ApplicationInfrastructure.Filters
 
                 context.Result = new BadRequestObjectResult(problemDetails);
                 context.HttpContext.Response.StatusCode = (int)HttpStatusCode.OK;
+
             }
             else
             {

@@ -1,12 +1,12 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
-
-namespace TgBotOrganaizer.Application
+﻿namespace TgBotOrganaizer.Application
 {
+    using System;
+    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc;
+    using Telegram.Bot;
+    using Telegram.Bot.Types;
+    using Telegram.Bot.Types.Enums;
+
     [ApiController]
     [Route("[controller]")]
     public class TgBotOrganaizerController : ControllerBase

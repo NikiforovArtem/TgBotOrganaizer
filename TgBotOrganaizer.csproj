@@ -7,12 +7,26 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Infrastructure\**" />
+    <Content Remove="Infrastructure\**" />
+    <EmbeddedResource Remove="Infrastructure\**" />
+    <None Remove="Infrastructure\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="6.3.0" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.10" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
     <PackageReference Include="MongoDB.Driver" Version="2.13.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
     <PackageReference Include="Telegram.Bot" Version="16.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TgBotOrganaizer.Common\TgBotOrganaizer.Common.csproj" />
+    <ProjectReference Include="..\TgBotOrganaizer.TelegramInfrastructure\TgBotOrganaizer.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

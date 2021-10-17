@@ -1,14 +1,14 @@
+using System.Reflection;
+using Autofac;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Telegram.Bot;
-using TgBotOrganaizer.Application;
-using TgBotOrganaizer.Core.Entities;
-using TgBotOrganaizer.InfrastructureMongo;
+using TgBotOrganaizer.Common;
+using TgBotOrganaizer.Infrastructure;
 
 namespace TgBotOrganaizer
 {
@@ -22,6 +22,12 @@ namespace TgBotOrganaizer
         public IConfiguration Configuration { get; }
 
 
+        public void ConfigureContainer(ContainerBuilder containerBuilder)
+        {
+            containerBuilder.RegisterConfiguredModulesFromAssemblyContaining<InfrastructureModule>(this.Configuration);
+            containerBuilder.RegisterAssemblyModules(Assembly.GetExecutingAssembly());
+        }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -34,15 +40,9 @@ namespace TgBotOrganaizer
 
 
             var authToken = this.Configuration["TgBot:AuthToken"];
-            services.Configure<DotNetTheoryMongoStoreSettings>(Configuration.GetSection(nameof(DotNetTheoryMongoStoreSettings)));
+            
 
             services.AddHttpClient("tgwebhook").AddTypedClient<ITelegramBotClient>(httpClient => new TelegramBotClient(authToken, httpClient));
-
-            services.AddSingleton<IDotNetTheoryMongoStoreSettings>(sp => sp.GetRequiredService<IOptions<DotNetTheoryMongoStoreSettings>>().Value);
-
-            this.ConfigureMongo(services);
-
-            services.AddScoped<ITelegramMessageHandler, TelegramMessageHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -57,18 +57,10 @@ namespace TgBotOrganaizer
 
             app.UseRouting();
 
-
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
-        }
-
-        private void ConfigureMongo(IServiceCollection serviceCollection)
-        {
-            MongoDbInitializer.Initialize();
-            serviceCollection.AddScoped<IArticleRepository, ArticleMongoRepository>();
         }
     }
 }

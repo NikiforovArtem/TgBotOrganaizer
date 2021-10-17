@@ -8,8 +8,8 @@
 
         public const string GetArticleCommand = "/get";
 
-        public const string InsertArticleCommand = "/insert";
+        public const string InsertArticleCommand = "/post";
 
-        public const string IncomingMessagePattern = @"(?<command>\/get||\/insert||\/update)\s*~(?<theme>[^~]+)~\s*(?<text>.*)";
+        public const string IncomingMessagePattern = @"(?<command>\/get||\/post)\s*~(?<theme>[^~]+)~\s*(?<text>.*)";
     }
 }
