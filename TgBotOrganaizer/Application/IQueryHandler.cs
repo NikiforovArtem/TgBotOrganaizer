@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
 using TgBotOrganaizer.Core.Interfaces;
@@ -8,7 +7,7 @@ namespace TgBotOrganaizer.Application
 {
     using System.Threading.Tasks;
 
-    public interface IGetCommandHandler
+    public interface IQueryHandler
     {
         Task HandleGetCommandAsync(long chatId, string theme);
 
@@ -17,12 +16,12 @@ namespace TgBotOrganaizer.Application
         Task HandleStartCommandAsync(long chatId);
     }
 
-    internal class GetCommandHandler : IGetCommandHandler
+    internal class QueryHandler : IQueryHandler
     {
         private readonly IArticleRepository articleRepository;
         private readonly ITelegramBotClient botClient;
 
-        public GetCommandHandler(IArticleRepository articleRepository, ITelegramBotClient botClient)
+        public QueryHandler(IArticleRepository articleRepository, ITelegramBotClient botClient)
         {
             this.articleRepository = articleRepository;
             this.botClient = botClient;

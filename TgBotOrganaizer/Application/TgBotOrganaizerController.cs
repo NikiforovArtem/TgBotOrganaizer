@@ -31,7 +31,6 @@
                     
                     await this.messageHandler.HandleTelegramMessageAsync(incomingMessage.Message);
                 }
-
             }
             catch (Exception e)
             {

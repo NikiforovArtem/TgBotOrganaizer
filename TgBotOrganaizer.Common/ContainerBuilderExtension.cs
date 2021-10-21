@@ -21,7 +21,6 @@ namespace TgBotOrganaizer.Common
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-
             var metaBuilder = new ContainerBuilder();
 
             metaBuilder.RegisterInstance(configuration);
