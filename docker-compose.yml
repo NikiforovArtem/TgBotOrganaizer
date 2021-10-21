@@ -1,0 +1,31 @@
+version: "3.9"    
+
+services:
+  mongo:
+    hostname: mongo1
+    image : mongo
+    container_name: mongodb
+    volumes:
+        - C:\MongoDb\database:/data/db
+    ports:
+        - 27017:27017
+    restart: unless-stopped
+    networks:
+        - telegramBotNetwork
+  app:
+    environment:
+        - ASPNETCORE_ENVIRONMENT=Development
+        - USER_SECRETS_ID=cc51649a-397c-40d1-982e-bdaa3fcb5d25
+    container_name: TgBotOrganaizer
+    ports:
+    - 4064:80
+    - 4065:443
+    volumes:
+     - $APPDATA/Microsoft/UserSecrets/$USER_SECRETS_ID:/root/.microsoft/usersecrets/$USER_SECRETS_ID
+    build:
+     context: .
+     dockerfile: TgBotOrganaizer\Dockerfile
+    networks:
+        - telegramBotNetwork
+networks:
+  telegramBotNetwork:

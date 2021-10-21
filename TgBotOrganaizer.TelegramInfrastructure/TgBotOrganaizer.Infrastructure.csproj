@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="6.3.0" />
+    <PackageReference Include="MongoDB.Bson" Version="2.13.1" />
+    <PackageReference Include="MongoDB.Driver" Version="2.13.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TgBotOrganaizer.Common\TgBotOrganaizer.Common.csproj" />
+    <ProjectReference Include="..\TgBotOrganaizer.Core\TgBotOrganaizer.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="InfrastructureTelegram\" />
+  </ItemGroup>
+
+</Project>
