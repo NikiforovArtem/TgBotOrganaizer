@@ -31,6 +31,15 @@ namespace TgBotOrganaizer.Application
         {
             var article = await this.articleRepository.GetArticleByThemeAsync(theme);
 
+            if (article == null)
+            {
+                await this.botClient.SendTextMessageAsync(
+                    chatId: chatId,
+                    text: "Заданной темы не существует");
+
+                return;
+            }
+
             if (article.PhotoItems != null && article.PhotoItems.Any())
             {
                 foreach (var photo in article.PhotoItems)
@@ -44,6 +53,7 @@ namespace TgBotOrganaizer.Application
                 return;
             }
 
+            //TODO: separate if > 500 symbols
             await this.botClient.SendTextMessageAsync(
                 chatId: chatId,
                 text: $"{article.Text}");

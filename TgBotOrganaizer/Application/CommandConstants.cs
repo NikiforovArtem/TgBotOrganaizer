@@ -10,6 +10,6 @@
 
         public const string InsertArticleCommand = "/post";
 
-        public const string IncomingMessagePattern = @"(?<command>\/get||\/post||\/getallthemes||\/start)(\s*~(?<theme>[^~]+)~\s*(?<text>.*))?";
+        public const string IncomingMessagePattern = @"(?<command>\/post|\/getallthemes|\/start|\/get)((\s~(?<theme>[^~]+)~)?(\s*(?<text>.*)))";
     }
 }

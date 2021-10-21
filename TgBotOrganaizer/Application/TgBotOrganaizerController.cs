@@ -34,6 +34,7 @@
             }
             catch (Exception e)
             {
+                // Only for debug. Chat id can use only in controller layer. Filters dont get it
                 await botClient.SendTextMessageAsync(
                     chatId: incomingMessage.Message.Chat.Id,
                     text: $"Произошла ошибка при отправке сообщения '{incomingMessage.Message.Text}'. Message={e.Message};StackTrace={e.StackTrace}");

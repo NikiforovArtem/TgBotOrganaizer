@@ -33,8 +33,9 @@ namespace TgBotOrganaizer.Application
             var regex = new Regex(CommandConstants.IncomingMessagePattern, RegexOptions.Singleline);
 
             var match = regex.Match(messageText);
+            var command = match.Groups["command"];
 
-            if (!match.Success)
+            if (!match.Success || string.IsNullOrEmpty(command.Value))
             {
                 await this.botClient.SendTextMessageAsync(
                     chatId: chatId,
@@ -42,8 +43,6 @@ namespace TgBotOrganaizer.Application
 
                 return;
             }
-
-            var command = match.Groups["command"];
 
             switch (command.Value)
             {
@@ -54,17 +53,60 @@ namespace TgBotOrganaizer.Application
                     await this.getCommandHandler.HandleGetAllThemeCommandAsync(chatId);
                     return;
                 case CommandConstants.GetArticleCommand:
-                    await this.getCommandHandler.HandleGetCommandAsync(chatId, match.Groups["theme"].Value);
-                    break;
+                    var themeValueGet = match.Groups["theme"].Value;
+
+                    if (!await this.ValidateTheme(themeValueGet, chatId))
+                    {
+                        return;
+                    }
+
+                    await this.getCommandHandler.HandleGetCommandAsync(chatId, themeValueGet);
+                    return;
                 case CommandConstants.InsertArticleCommand:
+                    var themeValueInsert = match.Groups["theme"].Value;
+                    var textValueInsert = match.Groups["text"].Value;
+
+                    if (!await this.ValidateTheme(themeValueInsert, chatId) && !await this.ValidateText(textValueInsert, chatId))
+                    {
+                        return;
+                    }
+
                     await this.commandHandler.PostCommandHandlerAsync(
                         incomingMessage.Document?.FileId ?? incomingMessage.Photo?.FirstOrDefault()?.FileId,
                         incomingMessage.Caption,
                         chatId,
-                        match.Groups["text"].Value,
-                        match.Groups["theme"].Value);
-                    break;
+                        textValueInsert,
+                        themeValueInsert);
+                   return;
             }
+        }
+
+        private async Task<bool> ValidateTheme(string theme, long chatId)
+        {
+            if (string.IsNullOrEmpty(theme))
+            {
+                await this.botClient.SendTextMessageAsync(
+                    chatId: chatId,
+                    text: "Не задана тема");
+
+                return false;
+            }
+
+            return true;
+        }
+
+        private async Task<bool> ValidateText(string text, long chatId)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                await this.botClient.SendTextMessageAsync(
+                    chatId: chatId,
+                    text: "Не введён текст статьи");
+
+                return false;
+            }
+
+            return true;
         }
     }
 }
