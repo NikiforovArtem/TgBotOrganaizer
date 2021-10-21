@@ -19,51 +19,32 @@ namespace TgBotOrganaizer.Application
     {
         private readonly ITelegramBotClient botClient;
         private readonly IArticleRepository articleRepository;
+        private readonly IGetCommandHandler getCommandHandler;
 
-        public TelegramMessageHandler(ITelegramBotClient botClient, IArticleRepository articleRepository)
+        public TelegramMessageHandler(ITelegramBotClient botClient, IArticleRepository articleRepository, IGetCommandHandler getCommandHandler)
         {
             this.botClient = botClient;
             this.articleRepository = articleRepository;
+            this.getCommandHandler = getCommandHandler;
         }
 
         public async Task HandleTelegramMessageAsync(Message incomingMessage)
         {
             // TODO: Validate by message type. not caption or text
-            if (string.IsNullOrEmpty(incomingMessage.Text) && string.IsNullOrEmpty(incomingMessage.Caption))
+            if (string.IsNullOrWhiteSpace(incomingMessage.Text) && string.IsNullOrWhiteSpace(incomingMessage.Caption))
             {
                 return;
             }
 
-            var regex = new Regex(CommandConstants.IncomingMessagePattern, RegexOptions.Singleline);
-
-            //TODO: Add caption to photo entity
             var messageText = incomingMessage.Text ?? incomingMessage.Caption;
             var chatId = incomingMessage.Chat.Id;
 
-            if (messageText == CommandConstants.StartCommand)
-            {
-                await this.GetReplyButtons(chatId);
-                return;
-            }
-
-            if (messageText == CommandConstants.GetAllThemesCommand)
-            {
-                var allThemes = await this.articleRepository.GetAllThemes();
-
-                //TODO: сделать кнопками inline с колбэком сразу на get по теме
-                foreach (var theme in allThemes)
-                {
-                    await this.botClient.SendTextMessageAsync(
-                        chatId: chatId,
-                        text: theme);
-                }
-
-                return;
-            }
+            var regex = new Regex(CommandConstants.IncomingMessagePattern, RegexOptions.Singleline);
 
             var match = regex.Match(messageText);
+            var command = match.Groups["command"];
 
-            if (!match.Success || string.IsNullOrWhiteSpace(match.Groups["command"].Value))
+            if (!match.Success || string.IsNullOrWhiteSpace(command.Value))
             {
                 await this.botClient.SendTextMessageAsync(
                     chatId: chatId,
@@ -72,13 +53,26 @@ namespace TgBotOrganaizer.Application
                 return;
             }
 
-            var command = match.Groups["command"];
 
-            // TODO: Add more handlers by command and with fabric from DI
+            //TODO: Add caption to photo entity
+
+            if (messageText == CommandConstants.StartCommand)
+            {
+                await this.getCommandHandler.HandleStartCommandAsync(chatId);
+                return;
+            }
+
+            if (messageText == CommandConstants.GetAllThemesCommand)
+            {
+                await this.getCommandHandler.HandleGetAllThemeCommandAsync(chatId);
+                return;
+            }
+
+
             switch (command.Value.ToLower())
             {
                 case CommandConstants.GetArticleCommand:
-                    await this.HandleGetCommandAsync(match, chatId);
+                    await this.getCommandHandler.HandleGetCommandAsync(chatId, match.Groups["theme"].Value);
                     break;
                 case CommandConstants.InsertArticleCommand:
                     await this.HandleInsertOrUpdateCommandAsync(match, incomingMessage.Document?.FileId ?? incomingMessage.Photo?.FirstOrDefault()?.FileId, incomingMessage.Caption, chatId); 
@@ -86,53 +80,6 @@ namespace TgBotOrganaizer.Application
             }
         }
 
-        private async Task GetReplyButtons(long chatId)
-        {
-            var keyboard = new Telegram.Bot.Types.ReplyMarkups.ReplyKeyboardMarkup
-            {
-                Keyboard = new[] {
-                    new[]
-                    {
-                        new KeyboardButton(CommandConstants.GetAllThemesCommand),
-                    },
-                },
-                ResizeKeyboard = true
-            };
-
-            await this.botClient.SendTextMessageAsync(chatId, "Команды...", replyMarkup: keyboard);
-        }
-
-        private async Task HandleGetCommandAsync(Match incomingMessageMatch, long chatId)
-        {
-            var theme = incomingMessageMatch.Groups["theme"];
-            var article = await this.articleRepository.GetArticleByThemeAsync(theme.Value);
-
-            if (article == null)
-            {
-                await botClient.SendTextMessageAsync(
-                    chatId: chatId,
-                    text: $"Заметка с темой={theme.Value} отсутствует");
-                return;
-            }
-            
-            //TODO: вынести в слой инфраструктуры взаимодействие с API Telegram
-            if (article.PhotoItems != null && article.PhotoItems.Any())
-            {
-                foreach (var photo in article.PhotoItems)
-                {
-                    await botClient.SendPhotoAsync(chatId, photo.ExternalId);
-                }
-            }
-
-            if (string.IsNullOrEmpty(article.Text))
-            {
-                return;
-            }
-
-            await botClient.SendTextMessageAsync(
-                chatId: chatId,
-                text: $"{article.Text}");
-        }
 
         private async Task HandleInsertOrUpdateCommandAsync(Match incomingMessageMatch, string fileId, string photoCaption, long chatId)
         {
